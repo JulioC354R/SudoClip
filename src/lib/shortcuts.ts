@@ -1,21 +1,25 @@
-import {
-  register,
-  unregister,
-  unregisterAll,
-} from '@tauri-apps/plugin-global-shortcut';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
+import { debug } from '@tauri-apps/plugin-log';
 export async function setupShortcuts() {
-  console.log('REGISTER');
-  await register('Alt+V', (event) => {
+  debug('REGISTER SHORTCUT: Alt+V');
+  await register('Alt+V', async (event) => {
     // event.state will be either "Pressed" or "Released"
     // Use if prevents the default behavior of the shortcut that is to trigger on both key press and release
     if (event.state === 'Pressed') {
-      console.log('TRIGGER');
-      
+      const window = getCurrentWindow();
+      const isVisible = await window.isVisible();
+      debug('Is Visible: ' + isVisible);
+      if (isVisible) {
+        window.hide();
+      } else {
+        window.show();
+      }
     }
   });
 }
 
 export async function destroyShortcuts() {
-  console.log('UNREGISTER');
+  debug('UNREGISTER SHORTCUTS');
   await unregisterAll();
 }
