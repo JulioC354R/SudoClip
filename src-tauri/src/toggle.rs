@@ -1,6 +1,5 @@
 use tauri::{AppHandle, Manager};
 
-/// Alterna visibilidade da janela principal
 pub fn handle_toggle(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let is_visible = window.is_visible().unwrap_or(false);
@@ -14,12 +13,10 @@ pub fn handle_toggle(app: &AppHandle) {
     }
 }
 
-/// Verifica se foi chamado com argumento "toggle"
 pub fn should_toggle() -> bool {
     std::env::args().any(|arg| arg == "toggle")
 }
 
-/// Configura single instance + toggle
 pub fn setup(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
     builder.plugin(
         tauri_plugin_single_instance::init(|app, argv, _cwd| {
