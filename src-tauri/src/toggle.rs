@@ -18,11 +18,9 @@ pub fn should_toggle() -> bool {
 }
 
 pub fn setup(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
-    builder.plugin(
-        tauri_plugin_single_instance::init(|app, argv, _cwd| {
-            if argv.contains(&"toggle".to_string()) {
-                handle_toggle(&app);
-            }
-        })
-    )
+    builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+        if argv.contains(&"toggle".to_string()) {
+            handle_toggle(&app);
+        }
+    }))
 }
