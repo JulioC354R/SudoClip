@@ -130,7 +130,7 @@ export default function App() {
       setHistory((prev) => {
         if (prev.some((i) => i.content === content)) return prev;
         isNew = true;
-        debug('New clipboard content: ' + content);
+        debug('New clipboard content captured');
         return [createClipboardItem(content, detectContentType(content)), ...prev].slice(0, settings.maxItems);
       });
       if (isNew) setSelectedIndex(0);

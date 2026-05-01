@@ -13,7 +13,11 @@ pub fn run() {
     builder = builder
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(tauri_plugin_log::log::LevelFilter::Debug)
+                .level(if cfg!(debug_assertions) {
+                    tauri_plugin_log::log::LevelFilter::Debug
+                } else {
+                    tauri_plugin_log::log::LevelFilter::Warn
+                })
                 .build(),
         )
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
