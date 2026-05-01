@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -11,6 +11,7 @@ interface SettingsPanelProps {
   onMaxItemsChange: (max: number) => void;
   onPinnedMaxItemsChange: (max: number) => void;
   onReset: () => void;
+  onClearAllPinned: () => void;
   onClose: () => void;
 }
 
@@ -22,6 +23,7 @@ export default function SettingsPanel({
   onMaxItemsChange,
   onPinnedMaxItemsChange,
   onReset,
+  onClearAllPinned,
   onClose,
 }: SettingsPanelProps) {
   const [recording, setRecording] = useState(false);
@@ -180,6 +182,21 @@ export default function SettingsPanel({
             <RotateCcw className="size-3" />
             Reset to Defaults
           </Button>
+
+          <div className="border-t border-border/50 pt-4">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onClearAllPinned}
+              className="w-full gap-1.5"
+            >
+              <Trash2 className="size-3" />
+              Clear All Pinned
+            </Button>
+            <p className="mt-1.5 text-[10px] text-muted-foreground/60">
+              Deletes all pinned items and their image files from disk.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -26,6 +26,7 @@ pub fn run() {
             pinned::save_pinned_image,
             pinned::read_pinned_image,
             pinned::delete_pinned_image,
+            pinned::clear_pinned_dir,
         ])
         .setup(|app| {
             if toggle::should_toggle() {

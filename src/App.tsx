@@ -21,7 +21,7 @@ import {
   DEFAULT_SETTINGS,
   type AppSettings,
 } from '@/lib/settings';
-import { loadPinnedItems, addPinnedItem, removePinnedItem } from '@/lib/pinned';
+import { loadPinnedItems, addPinnedItem, removePinnedItem, clearAllPinned } from '@/lib/pinned';
 import { Input } from '@/components/ui/input';
 import TitleBar from '@/components/TitleBar';
 import ClipboardItemRow from '@/components/ClipboardItem';
@@ -344,6 +344,11 @@ export default function App() {
     await register(DEFAULT_SETTINGS.shortcutKey, toggleWindow);
   }, []);
 
+  const handleClearAllPinned = useCallback(async () => {
+    await clearAllPinned();
+    setPinnedItems([]);
+  }, []);
+
   const nowSecs = Math.floor(Date.now() / 1000);
   const todayItems = filtered
     .map((item, idx) => ({ item, idx }))
@@ -363,6 +368,7 @@ export default function App() {
           onMaxItemsChange={handleMaxItemsChange}
           onPinnedMaxItemsChange={handlePinnedMaxItemsChange}
           onReset={handleReset}
+          onClearAllPinned={handleClearAllPinned}
           onClose={() => setSettingsOpen(false)}
         />
       ) : (

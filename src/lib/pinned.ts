@@ -114,6 +114,14 @@ export async function addPinnedItem(
   return updated;
 }
 
+export async function clearAllPinned(): Promise<void> {
+  await invoke('clear_pinned_dir');
+  const s = await getStore();
+  await s.set('pinned', []);
+  await s.save();
+  cachedItems = [];
+}
+
 export async function removePinnedItem(
   item: PinnedItem,
 ): Promise<PinnedItem[]> {

@@ -38,3 +38,14 @@ pub async fn delete_pinned_image(
     }
     Ok(())
 }
+
+#[tauri::command]
+pub async fn clear_pinned_dir(app: AppHandle) -> Result<(), String> {
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let pinned_dir = data_dir.join("pinned");
+    if pinned_dir.exists() {
+        fs::remove_dir_all(&pinned_dir).map_err(|e| e.to_string())?;
+    }
+    fs::create_dir_all(&pinned_dir).map_err(|e| e.to_string())?;
+    Ok(())
+}
