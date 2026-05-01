@@ -73,4 +73,44 @@ case "$method" in
   appimage) uninstall_appimage ;;
 esac
 
+# ── Kill running process ──
+if pkill sudoclip 2>/dev/null; then
+  msg "Stopped running sudoclip process"
+  sleep 0.5
+fi
+
+# ── Clean up persisted data ──
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/JulioC354R"
+if [ -d "$DATA_DIR" ]; then
+  msg "Removing app data (settings, pinned items, logs) ..."
+  rm -rf "$DATA_DIR"
+  msg "  removed $DATA_DIR"
+fi
+
+# ── Clean up GNOME gsettings shortcut ──
+if command -v gsettings &>/dev/null; then
+  GNOME_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/sudoclip/"
+  SCHEMA="org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:${GNOME_PATH}"
+  if gsettings get "$SCHEMA" name &>/dev/null; then
+    msg "Removing GNOME custom shortcut ..."
+
+    gsettings reset "$SCHEMA" name   2>/dev/null || true
+    gsettings reset "$SCHEMA" command 2>/dev/null || true
+    gsettings reset "$SCHEMA" binding 2>/dev/null || true
+
+    raw=$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings 2>/dev/null || true)
+    if [ -n "$raw" ]; then
+      cleaned=$(printf '%s' "$raw" \
+        | sed "s|'${GNOME_PATH}'||g" \
+        | sed "s|', ,|',|g; s|, ',|,|g; s|^\[, |[|; s|, ]$|]|; s|^\[$|[]|")
+      case "$cleaned" in
+        "[]"|"@as []"|"@as [] ") cleaned="@as []" ;;
+      esac
+      gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "$cleaned" 2>/dev/null || true
+    fi
+
+    msg "  removed from GNOME keyboard shortcuts"
+  fi
+fi
+
 msg "Uninstalled!"
