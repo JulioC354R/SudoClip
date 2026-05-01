@@ -1,12 +1,19 @@
-import { Clipboard, X } from 'lucide-react';
+import { Clipboard, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface TitleBarProps {
   itemCount: number;
+  maxItems: number;
   onClose: () => void;
+  onSettings: () => void;
 }
 
-export default function TitleBar({ itemCount, onClose }: TitleBarProps) {
+export default function TitleBar({
+  itemCount,
+  maxItems,
+  onClose,
+  onSettings,
+}: TitleBarProps) {
   return (
     <div
       data-tauri-drag-region
@@ -22,8 +29,16 @@ export default function TitleBar({ itemCount, onClose }: TitleBarProps) {
       </div>
       <div className="flex items-center gap-2.5">
         <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-          {itemCount}/30
+          {itemCount}/{maxItems}
         </span>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onSettings}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Settings className="size-3.5" />
+        </Button>
         <Button
           variant="ghost"
           size="icon-sm"

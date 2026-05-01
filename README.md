@@ -2,7 +2,7 @@
 
 Clipboard manager built with **Tauri v2** + **React 19** + **TypeScript** + **Tailwind CSS v4** + **shadcn/ui** (radix-nova).
 
-Records clipboard text history in-memory (max 30 items, **not persisted** between sessions) with search, keyboard navigation, and instant paste.
+Records clipboard text history in-memory (max 50 items, **not persisted** between sessions) with search, keyboard navigation, and instant paste.
 
 ## Features
 
@@ -44,14 +44,14 @@ Or use the shortcut script:
 
 ## Tech stack
 
-| Layer | Tech |
-|-------|------|
-| Frontend | React 19, Vite 7, TypeScript, Tailwind CSS v4 |
-| UI | shadcn/ui (radix-nova), lucide-react |
-| Backend | Rust, Tauri v2 |
-| Plugins | clipboard-manager, global-shortcut, single-instance, log, opener |
-| Windows | 400×500, decorations: false, skipTaskbar: true, alwaysOnTop: true |
-| Persistence | None — in-memory only (history lost on restart) |
+| Layer       | Tech                                                              |
+| ----------- | ----------------------------------------------------------------- |
+| Frontend    | React 19, Vite 7, TypeScript, Tailwind CSS v4                     |
+| UI          | shadcn/ui (radix-nova), lucide-react                              |
+| Backend     | Rust, Tauri v2                                                    |
+| Plugins     | clipboard-manager, global-shortcut, single-instance, log, opener  |
+| Windows     | 400×500, decorations: false, skipTaskbar: true, alwaysOnTop: true |
+| Persistence | None — in-memory only (history lost on restart)                   |
 
 ## Scripts
 
@@ -84,10 +84,10 @@ src-tauri/src/
 
 ## Keyboard shortcuts (inside window)
 
-| Key | Action |
-|-----|--------|
-| ↑ / ↓ | Navigate history |
-| Enter | Paste selected item |
-| Delete | Delete selected item |
-| Esc | Hide window |
-| Alt+V (global) | Toggle window |
+| Key            | Action               |
+| -------------- | -------------------- |
+| ↑ / ↓          | Navigate history     |
+| Enter          | Paste selected item  |
+| Delete         | Delete selected item |
+| Esc            | Hide window          |
+| Alt+V (global) | Toggle window        |
