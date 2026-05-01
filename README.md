@@ -94,37 +94,7 @@ Outputs go to `src-tauri/target/release/bundle/`.
 | Tray click     | Toggle window        |
 
 ## Auto-start
-
-### Linux
-
-```bash
-# Desktop autostart (per-user)
-mkdir -p ~/.config/autostart
-cat > ~/.config/autostart/sudoclip.desktop << EOF
-[Desktop Entry]
-Type=Application
-Name=SudoClip
-Exec=/usr/local/bin/sudoclip
-Terminal=false
-X-GNOME-Autostart-enabled=true
-EOF
-
-# Or systemd user service
-mkdir -p ~/.config/systemd/user
-cat > ~/.config/systemd/user/sudoclip.service << EOF
-[Unit]
-Description=SudoClip clipboard manager
-After=graphical-session.target
-
-[Service]
-ExecStart=/usr/local/bin/sudoclip
-Restart=on-failure
-
-[Install]
-WantedBy=default.target
-EOF
-systemctl --user enable --now sudoclip.service
-```
+**You can enable Auto-start on settings**
 
 ### Windows
 
