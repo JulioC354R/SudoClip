@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { writeText, writeImage } from '@tauri-apps/plugin-clipboard-manager';
-import { Image } from '@tauri-apps/api/image';
+import { getCurrentWindow, PhysicalPosition, currentMonitor, availableMonitors } from '@tauri-apps/api/window';
 import { debug } from '@tauri-apps/plugin-log';
 import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
 import { Search, X, Clipboard } from 'lucide-react';
@@ -11,7 +9,8 @@ import {
   readClipboard,
   readImageFromClipboard,
   detectContentType,
-  generateId,
+  performPaste,
+  createClipboardItem,
 } from '@/lib/clipboard';
 import type { ClipboardItem, PinnedItem } from '@/lib/types';
 import {
@@ -21,7 +20,15 @@ import {
   DEFAULT_SETTINGS,
   type AppSettings,
 } from '@/lib/settings';
-import { loadPinnedItems, addPinnedItem, removePinnedItem, clearAllPinned } from '@/lib/pinned';
+import {
+  loadPinnedItems,
+  addPinnedItem,
+  removePinnedItem,
+  clearAllPinned,
+} from '@/lib/pinned';
+import { useKeyboardNav } from '@/hooks/useKeyboardNav';
+import { useScrollIntoView } from '@/hooks/useScrollIntoView';
+import { POLL_INTERVAL_MS, SECONDS_PER_DAY, WIN_WIDTH, WIN_HEIGHT } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
 import TitleBar from '@/components/TitleBar';
 import ClipboardItemRow from '@/components/ClipboardItem';
@@ -40,7 +47,6 @@ function SectionLabel({ text }: { text: string }) {
 export default function App() {
   const [history, setHistory] = useState<ClipboardItem[]>([]);
   const [search, setSearch] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
@@ -55,12 +61,24 @@ export default function App() {
       item.content.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const { selectedIndex, setSelectedIndex } = useKeyboardNav(
+    activeTab === 'history' ? filtered : [],
+    {
+      onPaste: (item) => handlePaste(item),
+      onDelete: (item) => handleDelete(item.id),
+      onEscape: () => getCurrentWindow().hide(),
+    },
+    activeTab === 'history' && !settingsOpen,
+  );
+
+  useScrollIntoView(listRef, selectedIndex);
+
   useEffect(() => {
     let cancelled = false;
 
     const init = async () => {
       await unregisterAll();
-      await register(DEFAULT_SETTINGS.shortcutKey, toggleWindow);
+      await register('Alt+V', toggleWindow);
 
       const [s, pinned] = await Promise.all([
         loadSettings(),
@@ -70,7 +88,7 @@ export default function App() {
       setSettings(s);
       setPinnedItems(pinned);
 
-      if (s.shortcutKey !== DEFAULT_SETTINGS.shortcutKey) {
+      if (s.shortcutKey !== 'Alt+V') {
         await unregisterAll();
         await register(s.shortcutKey, toggleWindow);
       }
@@ -93,18 +111,11 @@ export default function App() {
         setHistory((prev) => {
           if (prev.some((i) => i.imageSignature === signature)) return prev;
           isNew = true;
-          const newItem: ClipboardItem = {
-            id: generateId(),
-            content: dataUrl,
-            contentType: 'image',
-            timestamp: Math.floor(Date.now() / 1000),
-            imageBytes: bytes,
-            imageWidth: width,
-            imageHeight: height,
-            imageSignature: signature,
-          };
           debug(`New clipboard image: ${width}x${height}`);
-          return [newItem, ...prev].slice(0, settings.maxItems);
+          return [
+            createClipboardItem(dataUrl, 'image', { imageBytes: bytes, imageWidth: width, imageHeight: height, imageSignature: signature }),
+            ...prev,
+          ].slice(0, settings.maxItems);
         });
         if (isNew) setSelectedIndex(0);
         return;
@@ -116,27 +127,21 @@ export default function App() {
       setHistory((prev) => {
         if (prev.some((i) => i.content === content)) return prev;
         isNew = true;
-        const newItem: ClipboardItem = {
-          id: generateId(),
-          content,
-          contentType: detectContentType(content),
-          timestamp: Math.floor(Date.now() / 1000),
-        };
         debug('New clipboard content: ' + content);
-        return [newItem, ...prev].slice(0, settings.maxItems);
+        return [createClipboardItem(content, detectContentType(content)), ...prev].slice(0, settings.maxItems);
       });
       if (isNew) setSelectedIndex(0);
     };
 
-    const interval = setInterval(poll, 500);
+    const interval = setInterval(poll, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [settings.maxItems]);
+  }, [settings.maxItems, setSelectedIndex]);
 
   const resetAndFocus = useCallback(() => {
     setSearch('');
     setSelectedIndex(0);
     setTimeout(() => searchRef.current?.focus(), 50);
-  }, []);
+  }, [setSelectedIndex]);
 
   useEffect(() => {
     const unlistenBlur = listen('tauri://blur', () => {
@@ -150,98 +155,18 @@ export default function App() {
     };
   }, [resetAndFocus]);
 
-  useEffect(() => {
-    if (filtered.length > 0 && selectedIndex >= filtered.length) {
-      setSelectedIndex(filtered.length - 1);
-    }
-  }, [filtered.length, selectedIndex]);
-
-  useEffect(() => {
-    if (activeTab === 'pinned') return;
-
-    const onKey = (e: KeyboardEvent) => {
-      if (settingsOpen) return;
-
-      switch (e.key) {
-        case 'Escape':
-          getCurrentWindow().hide();
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1));
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          setSelectedIndex((i) => Math.max(i - 1, 0));
-          break;
-        case 'Enter':
-          e.preventDefault();
-          if (filtered[selectedIndex]) {
-            handlePaste(filtered[selectedIndex]);
-          }
-          break;
-        case 'Delete':
-          if (document.activeElement !== searchRef.current) {
-            e.preventDefault();
-            const item = filtered[selectedIndex];
-            if (item) {
-              setHistory((prev) => prev.filter((i) => i.id !== item.id));
-            }
-          }
-          break;
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [filtered, selectedIndex, settingsOpen, activeTab]);
-
-  useEffect(() => {
-    const el = listRef.current?.querySelector(
-      '[data-selected="true"]',
-    ) as HTMLElement | null;
-    el?.scrollIntoView({ block: 'nearest' });
-  }, [selectedIndex]);
-
   const handlePaste = useCallback(async (item: ClipboardItem) => {
-    if (item.contentType === 'image') {
-      try {
-        const img = await Image.new(
-          item.imageBytes!,
-          item.imageWidth!,
-          item.imageHeight!,
-        );
-        await writeImage(img);
-      } catch (e) {
-        debug('Image paste error: ' + e);
-      }
-    } else {
-      await writeText(item.content);
-    }
-    await getCurrentWindow().hide();
-    await new Promise((r) => setTimeout(r, 100));
-    await invoke('simulate_paste');
+    await performPaste(item);
   }, []);
 
   const handlePinnedPaste = useCallback(async (item: PinnedItem) => {
-    if (item.contentType === 'image') {
-      if (item.imageBytes) {
-        try {
-          const img = await Image.new(
-            item.imageBytes,
-            item.imageWidth!,
-            item.imageHeight!,
-          );
-          await writeImage(img);
-        } catch (e) {
-          debug('Pinned image paste error: ' + e);
-        }
-      }
-    } else if (item.content) {
-      await writeText(item.content);
-    }
-    await getCurrentWindow().hide();
-    await new Promise((r) => setTimeout(r, 100));
-    await invoke('simulate_paste');
+    await performPaste({
+      contentType: item.contentType,
+      content: item.contentType === 'image' ? item.imageDataUrl || '' : item.content || '',
+      imageBytes: item.imageBytes,
+      imageWidth: item.imageWidth,
+      imageHeight: item.imageHeight,
+    });
   }, []);
 
   const handlePin = useCallback(
@@ -271,27 +196,19 @@ export default function App() {
       setPinnedItems(updated);
 
       if (item.contentType === 'image' && item.imageBytes) {
-        const historyItem: ClipboardItem = {
-          id: generateId(),
-          content: item.imageDataUrl || '',
-          contentType: 'image',
-          timestamp: Math.floor(Date.now() / 1000),
-          imageBytes: item.imageBytes,
-          imageWidth: item.imageWidth,
-          imageHeight: item.imageHeight,
-        };
         setHistory((prev) =>
-          [historyItem, ...prev].slice(0, settings.maxItems),
+          [
+            createClipboardItem(item.imageDataUrl || '', 'image', {
+              imageBytes: item.imageBytes,
+              imageWidth: item.imageWidth,
+              imageHeight: item.imageHeight,
+            }),
+            ...prev,
+          ].slice(0, settings.maxItems),
         );
       } else if (item.content) {
-        const historyItem: ClipboardItem = {
-          id: generateId(),
-          content: item.content,
-          contentType: item.contentType,
-          timestamp: Math.floor(Date.now() / 1000),
-        };
         setHistory((prev) =>
-          [historyItem, ...prev].slice(0, settings.maxItems),
+          [createClipboardItem(item.content!, item.contentType), ...prev].slice(0, settings.maxItems),
         );
       }
     },
@@ -310,7 +227,7 @@ export default function App() {
   const handleClear = useCallback(() => {
     setHistory([]);
     setSelectedIndex(0);
-  }, []);
+  }, [setSelectedIndex]);
 
   const handleClose = useCallback(() => {
     getCurrentWindow().hide();
@@ -352,10 +269,10 @@ export default function App() {
   const nowSecs = Math.floor(Date.now() / 1000);
   const todayItems = filtered
     .map((item, idx) => ({ item, idx }))
-    .filter(({ item }) => nowSecs - item.timestamp < 86400);
+    .filter(({ item }) => nowSecs - item.timestamp < SECONDS_PER_DAY);
   const earlierItems = filtered
     .map((item, idx) => ({ item, idx }))
-    .filter(({ item }) => nowSecs - item.timestamp >= 86400);
+    .filter(({ item }) => nowSecs - item.timestamp >= SECONDS_PER_DAY);
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-background">
@@ -534,7 +451,53 @@ async function toggleWindow(event?: { state: string }) {
   if (isVisible) {
     window.hide();
   } else {
-    window.show();
-    window.setFocus();
+    await positionWindowAtCursor(window);
+    await window.show();
+    await window.setFocus();
   }
+}
+
+async function positionWindowAtCursor(win: ReturnType<typeof getCurrentWindow>) {
+  let cursorX: number;
+  let cursorY: number;
+
+  try {
+    const pos = await invoke<[number, number]>('get_cursor_position');
+    cursorX = pos[0];
+    cursorY = pos[1];
+  } catch {
+    const monitor = await currentMonitor();
+    if (monitor) {
+      cursorX = monitor.position.x + monitor.size.width / 2;
+      cursorY = monitor.position.y + monitor.size.height / 2;
+    } else {
+      return;
+    }
+  }
+
+  const monitors = await availableMonitors();
+  const mon = monitors.find(
+    (m) =>
+      cursorX >= m.position.x &&
+      cursorX <= m.position.x + m.size.width &&
+      cursorY >= m.position.y &&
+      cursorY <= m.position.y + m.size.height,
+  ) || (await currentMonitor());
+
+  let x = Math.round(cursorX - WIN_WIDTH / 2);
+  let y = cursorY;
+
+  if (mon) {
+    const monLeft = mon.position.x;
+    const monRight = mon.position.x + mon.size.width;
+    const monTop = mon.position.y;
+    const monBottom = mon.position.y + mon.size.height;
+
+    if (x < monLeft) x = monLeft;
+    if (x + WIN_WIDTH > monRight) x = monRight - WIN_WIDTH;
+    if (y + WIN_HEIGHT > monBottom) y = cursorY - WIN_HEIGHT;
+    if (y < monTop) y = monTop;
+  }
+
+  await win.setPosition(new PhysicalPosition(x, y));
 }

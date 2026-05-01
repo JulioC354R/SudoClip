@@ -1,3 +1,4 @@
+mod cursor;
 mod paste;
 mod pinned;
 mod toggle;
@@ -5,8 +6,7 @@ mod toggle;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default()
-        .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}));
+        .plugin(tauri_plugin_clipboard_manager::init());
 
     builder = builder
         .plugin(
@@ -27,6 +27,7 @@ pub fn run() {
             pinned::read_pinned_image,
             pinned::delete_pinned_image,
             pinned::clear_pinned_dir,
+            cursor::get_cursor_position,
         ])
         .setup(|app| {
             if toggle::should_toggle() {

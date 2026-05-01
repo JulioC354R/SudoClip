@@ -1,0 +1,10 @@
+export const POLL_INTERVAL_MS = 500;
+export const PASTE_DELAY_MS = 100;
+export const SECONDS_PER_DAY = 86400;
+export const WIN_WIDTH = 400;
+export const WIN_HEIGHT = 500;
+export const MAX_ITEMS_MAX = 500;
+export const MAX_ITEMS_DEFAULT = 50;
+export const PINNED_MAX_ITEMS_MAX = 200;
+export const PINNED_MAX_ITEMS_DEFAULT = 20;
+export const IMAGE_SIG_LEN = 256;

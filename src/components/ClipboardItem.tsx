@@ -1,8 +1,7 @@
 import { Link, Code2, Type, Image, X, Pin, PinOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, timeAgo } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import type { ClipboardItem } from '@/lib/types';
-import { timeAgo } from '@/lib/clipboard';
 
 interface ClipboardItemRowProps {
   item: ClipboardItem;
@@ -14,32 +13,35 @@ interface ClipboardItemRowProps {
   pinned?: boolean;
 }
 
-function TypeIcon({ type }: { type: string }) {
-  if (type === 'url') return <Link className="size-3.5 shrink-0" />;
-  if (type === 'code') return <Code2 className="size-3.5 shrink-0" />;
-  if (type === 'image') return <Image className="size-3.5 shrink-0" />;
-  return <Type className="size-3.5 shrink-0" />;
-}
-
-function typeBadgeVariant(type: string): 'accent' | 'default' | 'muted' {
-  if (type === 'url') return 'accent';
-  if (type === 'code') return 'default';
-  return 'muted';
-}
-
-function typeLabel(type: string): string {
-  if (type === 'url') return 'URL';
-  if (type === 'code') return 'Code';
-  if (type === 'image') return 'Image';
-  return 'Text';
-}
-
-function typeIconBg(type: string): string {
-  if (type === 'url') return 'bg-accent/10 text-accent';
-  if (type === 'code') return 'bg-primary/10 text-primary';
-  if (type === 'image') return 'bg-emerald-500/10 text-emerald-500';
-  return 'bg-muted text-muted-foreground';
-}
+const TYPE_CONFIG: Record<
+  string,
+  { icon: typeof Link; badge: 'accent' | 'default' | 'muted'; label: string; bg: string }
+> = {
+  url: {
+    icon: Link,
+    badge: 'accent',
+    label: 'URL',
+    bg: 'bg-accent/10 text-accent',
+  },
+  code: {
+    icon: Code2,
+    badge: 'default',
+    label: 'Code',
+    bg: 'bg-primary/10 text-primary',
+  },
+  image: {
+    icon: Image,
+    badge: 'muted',
+    label: 'Image',
+    bg: 'bg-emerald-500/10 text-emerald-500',
+  },
+  text: {
+    icon: Type,
+    badge: 'muted',
+    label: 'Text',
+    bg: 'bg-muted text-muted-foreground',
+  },
+};
 
 export default function ClipboardItemRow({
   item,
@@ -50,6 +52,9 @@ export default function ClipboardItemRow({
   onPin,
   pinned,
 }: ClipboardItemRowProps) {
+  const config = TYPE_CONFIG[item.contentType] || TYPE_CONFIG.text;
+  const TypeIcon = config.icon;
+
   return (
     <div
       data-selected={isSelected}
@@ -63,10 +68,10 @@ export default function ClipboardItemRow({
       <div
         className={cn(
           'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md',
-          typeIconBg(item.contentType),
+          config.bg,
         )}
       >
-        <TypeIcon type={item.contentType} />
+        <TypeIcon className="size-3.5 shrink-0" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -93,9 +98,7 @@ export default function ClipboardItemRow({
           </p>
         )}
         <div className="mt-1 flex items-center gap-1.5">
-          <Badge variant={typeBadgeVariant(item.contentType)}>
-            {typeLabel(item.contentType)}
-          </Badge>
+          <Badge variant={config.badge}>{config.label}</Badge>
           <span className="text-[11px] text-muted-foreground">
             {timeAgo(item.timestamp)}
           </span>

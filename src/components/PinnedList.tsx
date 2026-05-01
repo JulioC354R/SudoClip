@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useMemo, useRef } from 'react';
 import {
   ArrowUpWideNarrow,
   ArrowDownWideNarrow,
   ArrowUpAZ,
   ArrowDownZA,
-  Image,
+  Image as ImageIcon,
   Type,
   Pin,
 } from 'lucide-react';
+import { useKeyboardNav } from '@/hooks/useKeyboardNav';
+import { useScrollIntoView } from '@/hooks/useScrollIntoView';
 import { Button } from '@/components/ui/button';
 import ClipboardItemRow from '@/components/ClipboardItem';
 import type { PinnedItem, ClipboardItem } from '@/lib/types';
@@ -34,7 +36,7 @@ const SORT_ICONS: Record<SortMode, typeof ArrowUpWideNarrow> = {
   'added-desc': ArrowDownWideNarrow,
   'alpha-asc': ArrowUpAZ,
   'alpha-desc': ArrowDownZA,
-  'image-first': Image,
+  'image-first': ImageIcon,
   'text-first': Type,
 };
 
@@ -103,69 +105,19 @@ export default function PinnedList({
   onPaste,
   onDelete,
 }: PinnedListProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
-
   const sorted = useMemo(() => sortItems(items, sortMode), [items, sortMode]);
 
-  useEffect(() => {
-    if (sorted.length > 0 && selectedIndex >= sorted.length) {
-      setSelectedIndex(sorted.length - 1);
-    }
-  }, [sorted.length, selectedIndex]);
-
-  const handlePaste = useCallback(
-    (item: PinnedItem) => {
-      onPaste(item);
+  const { selectedIndex, setSelectedIndex } = useKeyboardNav(
+    sorted,
+    {
+      onPaste,
+      onDelete,
     },
-    [onPaste],
+    true,
   );
 
-  const handleDelete = useCallback(
-    (item: PinnedItem) => {
-      onDelete(item);
-    },
-    [onDelete],
-  );
-
-  const handleUnpin = useCallback(
-    (item: PinnedItem) => {
-      onUnpin(item);
-    },
-    [onUnpin],
-  );
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          setSelectedIndex((i) => Math.min(i + 1, sorted.length - 1));
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          setSelectedIndex((i) => Math.max(i - 1, 0));
-          break;
-        case 'Enter':
-          e.preventDefault();
-          if (sorted[selectedIndex]) handlePaste(sorted[selectedIndex]);
-          break;
-        case 'Delete':
-          e.preventDefault();
-          if (sorted[selectedIndex]) handleDelete(sorted[selectedIndex]);
-          break;
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [sorted, selectedIndex, handlePaste, handleDelete]);
-
-  useEffect(() => {
-    const el = listRef.current?.querySelector(
-      '[data-selected="true"]',
-    ) as HTMLElement | null;
-    el?.scrollIntoView({ block: 'nearest' });
-  }, [selectedIndex]);
+  useScrollIntoView(listRef, selectedIndex);
 
   const SortIcon = SORT_ICONS[sortMode];
 
@@ -231,9 +183,9 @@ export default function PinnedList({
                   item={clipboardItem}
                   isSelected={idx === selectedIndex}
                   onSelect={() => setSelectedIndex(idx)}
-                  onPaste={() => handlePaste(item)}
-                  onDelete={() => handleDelete(item)}
-                  onPin={() => handleUnpin(item)}
+                  onPaste={() => onPaste(item)}
+                  onDelete={() => onDelete(item)}
+                  onPin={() => onUnpin(item)}
                   pinned
                 />
               );

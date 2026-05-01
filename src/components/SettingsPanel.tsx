@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, RotateCcw, Trash2 } from 'lucide-react';
+import { clamp } from '@/lib/utils';
+import { MAX_ITEMS_MAX, PINNED_MAX_ITEMS_MAX } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -52,7 +54,6 @@ export default function SettingsPanel({
     if (e.metaKey) parts.push('Super');
 
     if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return;
-
     if (parts.length === 0) return;
 
     const keyMap: Record<string, string> = {
@@ -68,24 +69,17 @@ export default function SettingsPanel({
     setRecording(false);
   };
 
-  const handleMaxItemsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    if (raw === '') return;
-    let val = parseInt(raw, 10);
-    if (isNaN(val)) return;
-    val = Math.max(1, Math.min(500, val));
-    onMaxItemsChange(val);
-  };
-
-  const handlePinnedMaxItemsChange = (
+  const handleNumericChange = (
     e: React.ChangeEvent<HTMLInputElement>,
+    min: number,
+    max: number,
+    onChange: (val: number) => void,
   ) => {
     const raw = e.target.value;
     if (raw === '') return;
-    let val = parseInt(raw, 10);
+    const val = parseInt(raw, 10);
     if (isNaN(val)) return;
-    val = Math.max(1, Math.min(200, val));
-    onPinnedMaxItemsChange(val);
+    onChange(clamp(val, min, max));
   };
 
   return (
@@ -144,13 +138,13 @@ export default function SettingsPanel({
             <Input
               type="number"
               min={1}
-              max={500}
+              max={MAX_ITEMS_MAX}
               value={maxItems}
-              onChange={handleMaxItemsChange}
+              onChange={(e) => handleNumericChange(e, 1, MAX_ITEMS_MAX, onMaxItemsChange)}
               className="h-9"
             />
             <p className="text-[10px] text-muted-foreground/60">
-              Maximum clipboard items to store (1–500). Values above 500 are
+              Maximum clipboard items to store (1–{MAX_ITEMS_MAX}). Values above {MAX_ITEMS_MAX} are
               capped automatically.
             </p>
           </div>
@@ -162,13 +156,13 @@ export default function SettingsPanel({
             <Input
               type="number"
               min={1}
-              max={200}
+              max={PINNED_MAX_ITEMS_MAX}
               value={pinnedMaxItems}
-              onChange={handlePinnedMaxItemsChange}
+              onChange={(e) => handleNumericChange(e, 1, PINNED_MAX_ITEMS_MAX, onPinnedMaxItemsChange)}
               className="h-9"
             />
             <p className="text-[10px] text-muted-foreground/60">
-              Maximum pinned items (1–200). Values above 200 are capped
+              Maximum pinned items (1–{PINNED_MAX_ITEMS_MAX}). Values above {PINNED_MAX_ITEMS_MAX} are capped
               automatically.
             </p>
           </div>

@@ -18,6 +18,7 @@ npm run dev               # frontend-only: vite
 - **Window**: 400×500, no decorations, skip taskbar, always-on-top (`src-tauri/tauri.conf.json:13-21`)
 - **Global shortcut**: configurable in settings (default `Alt+V`), registered in `src/App.tsx` via `@tauri-apps/plugin-global-shortcut`
 - **Clipboard polling**: reads clipboard every 500ms (`src/App.tsx`)
+- **Window positioning**: opens at cursor position (via `cursor.rs`), clamped to monitor bounds
 - **Toggle via CLI**: `./sudoclip toggle` toggles window — used for Wayland shortcut testing
 
 ## Settings
@@ -28,6 +29,7 @@ npm run dev               # frontend-only: vite
   - Max Items input (1–500, clamped)
   - Pinned Max Items input (1–200, clamped)
   - Reset to Defaults button
+  - Clear All Pinned button (deletes all pinned items + images)
 - Settings persist in `$APPDATA_DIR/plugins/store/settings.json`
 
 ## Pinned items
@@ -38,8 +40,20 @@ npm run dev               # frontend-only: vite
   - `save_pinned_image` — writes raw RGBA bytes to `$APPDATA_DIR/pinned/<id>`
   - `read_pinned_image` — reads raw RGBA bytes from disk
   - `delete_pinned_image` — deletes image file
+  - `clear_pinned_dir` — deletes all image files
 - Images stored as raw RGBA bytes; thumbnails reconstructed via canvas on load
 - Pinned items persisted across sessions
+
+## Shared hooks
+
+- **`src/hooks/useKeyboardNav.ts`** — generic keyboard navigation (↑↓EnterDeleteEsc), manages selectedIndex, bounds correction
+- **`src/hooks/useScrollIntoView.ts`** — scrolls `[data-selected="true"]` into view
+
+## Utilities
+
+- **`src/lib/constants.ts`** — named constants (POLL_INTERVAL_MS, SECONDS_PER_DAY, WIN_WIDTH, etc.)
+- **`src/lib/utils.ts`** — `cn()`, `clamp()`, `timeAgo()`, `generateId()`, `rgbaToDataUrl()`, `imageSignature()`
+- **`src/lib/clipboard.ts`** — clipboard I/O, `performPaste()` (shared paste pipeline), `createClipboardItem()` factory
 
 ## Wayland shortcut testing
 
@@ -55,6 +69,7 @@ npm run tauri build
 
 - **CSS**: Tailwind v4 `@import` syntax (not `@tailwind` directives), shadcn radix-nova style
 - **Components**: shadcn/ui in `src/components/ui/`, utility `cn()` in `src/lib/utils.ts`
+- **Hooks**: custom hooks in `src/hooks/`
 - **TypeScript**: strict mode, `noUnusedLocals`/`noUnusedParameters` enabled
 - **No linter/formatter configured** — only `tsc` type-checking (via `npm run build`)
 - **No test framework configured**

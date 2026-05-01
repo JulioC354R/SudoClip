@@ -1,5 +1,6 @@
 import { Store } from '@tauri-apps/plugin-store';
 import { invoke } from '@tauri-apps/api/core';
+import { rgbaToDataUrl } from '@/lib/utils';
 import type { PinnedItem } from './types';
 
 let store: Store | null = null;
@@ -9,21 +10,6 @@ async function getStore(): Promise<Store> {
   if (store) return store;
   store = await Store.load('pinned.json');
   return store;
-}
-
-function rgbaToDataUrl(
-  bytes: number[],
-  width: number,
-  height: number,
-): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
-  const imageData = ctx.createImageData(width, height);
-  imageData.data.set(new Uint8Array(bytes));
-  ctx.putImageData(imageData, 0, 0);
-  return canvas.toDataURL();
 }
 
 export async function loadPinnedItems(): Promise<PinnedItem[]> {
@@ -114,14 +100,6 @@ export async function addPinnedItem(
   return updated;
 }
 
-export async function clearAllPinned(): Promise<void> {
-  await invoke('clear_pinned_dir');
-  const s = await getStore();
-  await s.set('pinned', []);
-  await s.save();
-  cachedItems = [];
-}
-
 export async function removePinnedItem(
   item: PinnedItem,
 ): Promise<PinnedItem[]> {
@@ -141,4 +119,12 @@ export async function removePinnedItem(
   await savePinnedItems(filtered);
   cachedItems = filtered;
   return filtered;
+}
+
+export async function clearAllPinned(): Promise<void> {
+  await invoke('clear_pinned_dir');
+  const s = await getStore();
+  await s.set('pinned', []);
+  await s.save();
+  cachedItems = [];
 }

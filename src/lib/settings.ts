@@ -1,4 +1,5 @@
 import { Store } from '@tauri-apps/plugin-store';
+import { clamp } from '@/lib/utils';
 
 export interface AppSettings {
   shortcutKey: string;
@@ -7,25 +8,10 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  shortcutKey: getDefaultShortcut(),
+  shortcutKey: 'Alt+V',
   maxItems: 50,
   pinnedMaxItems: 20,
 };
-
-function getDefaultShortcut(): string {
-  const platform = navigator.userAgent.toLowerCase();
-
-  if (platform.includes('win')) {
-    return 'Win+C';
-  }
-
-  if (platform.includes('mac')) {
-    return 'Cmd+C';
-  }
-
-  // Linux (fallback)
-  return 'Super+C';
-}
 
 let store: Store | null = null;
 
@@ -43,14 +29,12 @@ export async function loadSettings(): Promise<AppSettings> {
     const pinnedMaxItems = await s.get<number>('pinnedMaxItems');
     return {
       shortcutKey: shortcutKey ?? DEFAULT_SETTINGS.shortcutKey,
-      maxItems:
-        maxItems != null
-          ? Math.max(1, Math.min(500, maxItems))
-          : DEFAULT_SETTINGS.maxItems,
-      pinnedMaxItems:
-        pinnedMaxItems != null
-          ? Math.max(1, Math.min(200, pinnedMaxItems))
-          : DEFAULT_SETTINGS.pinnedMaxItems,
+      maxItems: maxItems != null
+        ? clamp(maxItems, 1, 500)
+        : DEFAULT_SETTINGS.maxItems,
+      pinnedMaxItems: pinnedMaxItems != null
+        ? clamp(pinnedMaxItems, 1, 200)
+        : DEFAULT_SETTINGS.pinnedMaxItems,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -63,13 +47,14 @@ export async function saveSetting<K extends keyof AppSettings>(
 ): Promise<void> {
   try {
     const s = await getStore();
+    let clamped = value;
     if (key === 'maxItems' && typeof value === 'number') {
-      value = Math.max(1, Math.min(500, value)) as AppSettings[K];
+      clamped = clamp(value, 1, 500) as AppSettings[K];
     }
     if (key === 'pinnedMaxItems' && typeof value === 'number') {
-      value = Math.max(1, Math.min(200, value)) as AppSettings[K];
+      clamped = clamp(value, 1, 200) as AppSettings[K];
     }
-    await s.set(key, value);
+    await s.set(key, clamped);
     await s.save();
   } catch (e) {
     console.error('Failed to save setting:', e);
