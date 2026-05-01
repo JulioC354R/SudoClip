@@ -5,12 +5,14 @@ export interface AppSettings {
   shortcutKey: string;
   maxItems: number;
   pinnedMaxItems: number;
+  autoStart: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   shortcutKey: 'Super+C',
   maxItems: 50,
   pinnedMaxItems: 20,
+  autoStart: false,
 };
 
 let store: Store | null = null;
@@ -27,6 +29,7 @@ export async function loadSettings(): Promise<AppSettings> {
     const shortcutKey = await s.get<string>('shortcutKey');
     const maxItems = await s.get<number>('maxItems');
     const pinnedMaxItems = await s.get<number>('pinnedMaxItems');
+    const autoStart = await s.get<boolean>('autoStart');
     return {
       shortcutKey: shortcutKey ?? DEFAULT_SETTINGS.shortcutKey,
       maxItems: maxItems != null
@@ -35,6 +38,7 @@ export async function loadSettings(): Promise<AppSettings> {
       pinnedMaxItems: pinnedMaxItems != null
         ? clamp(pinnedMaxItems, 1, 200)
         : DEFAULT_SETTINGS.pinnedMaxItems,
+      autoStart: autoStart ?? DEFAULT_SETTINGS.autoStart,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

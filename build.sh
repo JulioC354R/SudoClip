@@ -63,3 +63,33 @@ case "$BUNDLE" in
     build_rust "$BUNDLE"
     ;;
 esac
+
+# ── Copy artifacts to release/ ──
+copy_artifacts() {
+  local ver
+  ver=$(node -p "require('./package.json').version")
+
+  mkdir -p release
+
+  if [ -f "src-tauri/target/release/sudoclip" ]; then
+    cp "src-tauri/target/release/sudoclip" "release/sudoclip_${ver}_binary"
+    echo "  copied binary → release/sudoclip_${ver}_binary"
+  fi
+
+  if ls src-tauri/target/release/bundle/appimage/sudoclip_*.AppImage &>/dev/null; then
+    cp src-tauri/target/release/bundle/appimage/sudoclip_*.AppImage "release/sudoclip-x86_64.AppImage"
+    echo "  copied AppImage → release/sudoclip-x86_64.AppImage"
+  fi
+
+  if [ -f "src-tauri/target/release/bundle/deb/sudoclip_${ver}_amd64.deb" ]; then
+    cp "src-tauri/target/release/bundle/deb/sudoclip_${ver}_amd64.deb" "release/"
+    echo "  copied .deb → release/sudoclip_${ver}_amd64.deb"
+  fi
+
+  if [ -f "src-tauri/target/release/bundle/rpm/sudoclip-${ver}-1.x86_64.rpm" ]; then
+    cp "src-tauri/target/release/bundle/rpm/sudoclip-${ver}-1.x86_64.rpm" "release/"
+    echo "  copied .rpm → release/sudoclip-${ver}-1.x86_64.rpm"
+  fi
+}
+
+copy_artifacts

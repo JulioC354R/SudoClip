@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow, PhysicalPosition, currentMonitor, availableMonitors } from '@tauri-apps/api/window';
 import { debug } from '@tauri-apps/plugin-log';
 import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
+import { enable as autostartEnable, disable as autostartDisable } from '@tauri-apps/plugin-autostart';
 import { Search, X } from 'lucide-react';
 import ClipboardPen from '@/components/ClipboardPen';
 import {
@@ -90,6 +91,10 @@ export default function App() {
       setPinnedItems(pinned);
 
       await invoke('init_wayland_shortcut', { key: s.shortcutKey }).catch(() => {});
+
+      if (s.autoStart) {
+        await autostartEnable().catch(() => {});
+      }
 
       if (s.shortcutKey !== DEFAULT_SETTINGS.shortcutKey) {
         await unregisterAll();
@@ -262,12 +267,27 @@ export default function App() {
     await saveSetting('pinnedMaxItems', max);
   }, []);
 
+  const handleAutoStartChange = useCallback(async (enabled: boolean) => {
+    setSettings((prev) => ({ ...prev, autoStart: enabled }));
+    await saveSetting('autoStart', enabled);
+    try {
+      if (enabled) {
+        await autostartEnable();
+      } else {
+        await autostartDisable();
+      }
+    } catch {
+      // plugin not available
+    }
+  }, []);
+
   const handleReset = useCallback(async () => {
     await resetSettings();
     setSettings({ ...DEFAULT_SETTINGS });
     await unregisterAll();
     await register(DEFAULT_SETTINGS.shortcutKey, toggleWindow);
     await invoke('update_wayland_shortcut', { key: DEFAULT_SETTINGS.shortcutKey }).catch(() => {});
+    await autostartDisable().catch(() => {});
   }, []);
 
   const handleClearAllPinned = useCallback(async () => {
@@ -290,9 +310,11 @@ export default function App() {
           shortcutKey={settings.shortcutKey}
           maxItems={settings.maxItems}
           pinnedMaxItems={settings.pinnedMaxItems}
+          autoStart={settings.autoStart}
           onShortcutKeyChange={handleShortcutKeyChange}
           onMaxItemsChange={handleMaxItemsChange}
           onPinnedMaxItemsChange={handlePinnedMaxItemsChange}
+          onAutoStartChange={handleAutoStartChange}
           onReset={handleReset}
           onClearAllPinned={handleClearAllPinned}
           onClose={() => setSettingsOpen(false)}

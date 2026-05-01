@@ -10,9 +10,11 @@ interface SettingsPanelProps {
   shortcutKey: string;
   maxItems: number;
   pinnedMaxItems: number;
+  autoStart: boolean;
   onShortcutKeyChange: (key: string) => void;
   onMaxItemsChange: (max: number) => void;
   onPinnedMaxItemsChange: (max: number) => void;
+  onAutoStartChange: (enabled: boolean) => void;
   onReset: () => void;
   onClearAllPinned: () => void;
   onClose: () => void;
@@ -22,9 +24,11 @@ export default function SettingsPanel({
   shortcutKey,
   maxItems,
   pinnedMaxItems,
+  autoStart,
   onShortcutKeyChange,
   onMaxItemsChange,
   onPinnedMaxItemsChange,
+  onAutoStartChange,
   onReset,
   onClearAllPinned,
   onClose,
@@ -59,10 +63,10 @@ export default function SettingsPanel({
 
     const keyMap: Record<string, string> = {
       ' ': 'Space',
-      'ArrowUp': 'Up',
-      'ArrowDown': 'Down',
-      'ArrowLeft': 'Left',
-      'ArrowRight': 'Right',
+      ArrowUp: 'Up',
+      ArrowDown: 'Down',
+      ArrowLeft: 'Left',
+      ArrowRight: 'Right',
     };
 
     parts.push(keyMap[e.key] || e.key.toUpperCase());
@@ -106,8 +110,8 @@ export default function SettingsPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-5">
-          <div className="space-y-2">
+        <div className="space-y-2">
+          <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">
               Global Shortcut
             </label>
@@ -132,7 +136,7 @@ export default function SettingsPanel({
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">
               Max Items
             </label>
@@ -141,16 +145,18 @@ export default function SettingsPanel({
               min={1}
               max={MAX_ITEMS_MAX}
               value={maxItems}
-              onChange={(e) => handleNumericChange(e, 1, MAX_ITEMS_MAX, onMaxItemsChange)}
+              onChange={(e) =>
+                handleNumericChange(e, 1, MAX_ITEMS_MAX, onMaxItemsChange)
+              }
               className="h-9"
             />
             <p className="text-[10px] text-muted-foreground/60">
-              Maximum clipboard items to store (1–{MAX_ITEMS_MAX}). Values above {MAX_ITEMS_MAX} are
-              capped automatically.
+              Maximum clipboard items to store (1–{MAX_ITEMS_MAX}). Values above{' '}
+              {MAX_ITEMS_MAX} are capped automatically.
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">
               Pinned Max Items
             </label>
@@ -159,39 +165,67 @@ export default function SettingsPanel({
               min={1}
               max={PINNED_MAX_ITEMS_MAX}
               value={pinnedMaxItems}
-              onChange={(e) => handleNumericChange(e, 1, PINNED_MAX_ITEMS_MAX, onPinnedMaxItemsChange)}
+              onChange={(e) =>
+                handleNumericChange(
+                  e,
+                  1,
+                  PINNED_MAX_ITEMS_MAX,
+                  onPinnedMaxItemsChange,
+                )
+              }
               className="h-9"
             />
             <p className="text-[10px] text-muted-foreground/60">
-              Maximum pinned items (1–{PINNED_MAX_ITEMS_MAX}). Values above {PINNED_MAX_ITEMS_MAX} are capped
-              automatically.
+              Maximum pinned items (1–{PINNED_MAX_ITEMS_MAX}). Values above{' '}
+              {PINNED_MAX_ITEMS_MAX} are capped automatically.
             </p>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <label className="text-xs font-medium text-foreground">
+                Launch at startup
+              </label>
+              <p className="text-[10px] text-muted-foreground/60">
+                Automatically start SudoClip when you log in
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={autoStart}
+              onClick={() => onAutoStartChange(!autoStart)}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                autoStart ? 'bg-primary' : 'bg-muted-foreground/30'
+              }`}
+            >
+              <span
+                className={`pointer-events-none block size-4 rounded-full bg-background shadow-sm ring-0 transition-transform ${
+                  autoStart ? 'translate-x-[18px]' : 'translate-x-[2px]'
+                }`}
+              />
+            </button>
           </div>
 
           <Button
             variant="destructive"
             size="sm"
             onClick={onReset}
-            className="w-full gap-1.5"
+            className="w-full gap-1"
           >
             <RotateCcw className="size-3" />
             Reset to Defaults
           </Button>
 
-          <div className="border-t border-border/50 pt-4">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={onClearAllPinned}
-              className="w-full gap-1.5"
-            >
-              <Trash2 className="size-3" />
-              Clear All Pinned
-            </Button>
-            <p className="mt-1.5 text-[10px] text-muted-foreground/60">
-              Deletes all pinned items and their image files from disk.
-            </p>
-          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onClearAllPinned}
+            className="w-full gap-1"
+          >
+            <Trash2 className="size-3" />
+            Clear All Pinned
+          </Button>
 
           <div className="border-t border-border/50 pt-4">
             <div className="flex items-center gap-3">
@@ -217,7 +251,9 @@ export default function SettingsPanel({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => openUrl('https://github.com/JulioC354R/SudoClip')}
+                onClick={() =>
+                  openUrl('https://github.com/JulioC354R/SudoClip')
+                }
                 className="gap-1.5"
               >
                 <ExternalLink className="size-3.5" />
