@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { writeText, writeImage } from '@tauri-apps/plugin-clipboard-manager';
+import { Image } from '@tauri-apps/api/image';
 import { debug } from '@tauri-apps/plugin-log';
 import { Search, X, Clipboard } from 'lucide-react';
-import { readClipboard, detectContentType, generateId } from '@/lib/clipboard';
+import { readClipboard, readImageFromClipboard, detectContentType, generateId } from '@/lib/clipboard';
 import type { ClipboardItem } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import TitleBar from '@/components/TitleBar';
@@ -37,6 +38,30 @@ export default function App() {
 
   useEffect(() => {
     const poll = async () => {
+      const imageResult = await readImageFromClipboard();
+      if (imageResult) {
+        const { dataUrl, bytes, width, height, signature } = imageResult;
+        let isNew = false;
+        setHistory((prev) => {
+          if (prev.some((i) => i.imageSignature === signature)) return prev;
+          isNew = true;
+          const newItem: ClipboardItem = {
+            id: generateId(),
+            content: dataUrl,
+            contentType: 'image',
+            timestamp: Math.floor(Date.now() / 1000),
+            imageBytes: bytes,
+            imageWidth: width,
+            imageHeight: height,
+            imageSignature: signature,
+          };
+          debug(`New clipboard image: ${width}x${height}`);
+          return [newItem, ...prev].slice(0, MAX_ITEMS);
+        });
+        if (isNew) setSelectedIndex(0);
+        return;
+      }
+
       const content = await readClipboard();
       if (!content) return;
       let isNew = false;
@@ -100,7 +125,7 @@ export default function App() {
         case 'Enter':
           e.preventDefault();
           if (filtered[selectedIndex]) {
-            handlePaste(filtered[selectedIndex].content);
+            handlePaste(filtered[selectedIndex]);
           }
           break;
         case 'Delete':
@@ -125,8 +150,17 @@ export default function App() {
     el?.scrollIntoView({ block: 'nearest' });
   }, [selectedIndex]);
 
-  const handlePaste = useCallback(async (content: string) => {
-    await writeText(content);
+  const handlePaste = useCallback(async (item: ClipboardItem) => {
+    if (item.contentType === 'image') {
+      try {
+        const img = await Image.new(item.imageBytes!, item.imageWidth!, item.imageHeight!);
+        await writeImage(img);
+      } catch (e) {
+        debug('Image paste error: ' + e);
+      }
+    } else {
+      await writeText(item.content);
+    }
     await getCurrentWindow().hide();
     await new Promise((r) => setTimeout(r, 100));
     await invoke('simulate_paste');
@@ -221,7 +255,7 @@ export default function App() {
                     item={item}
                     isSelected={idx === selectedIndex}
                     onSelect={() => setSelectedIndex(idx)}
-                    onPaste={() => handlePaste(item.content)}
+                    onPaste={() => handlePaste(item)}
                     onDelete={() => handleDelete(item.id)}
                   />
                 ))}
@@ -236,7 +270,7 @@ export default function App() {
                     item={item}
                     isSelected={idx === selectedIndex}
                     onSelect={() => setSelectedIndex(idx)}
-                    onPaste={() => handlePaste(item.content)}
+                    onPaste={() => handlePaste(item)}
                     onDelete={() => handleDelete(item.id)}
                   />
                 ))}
