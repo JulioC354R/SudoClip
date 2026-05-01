@@ -1,8 +1,66 @@
 # SudoClip
 
-Clipboard manager built with **Tauri v2** + **React 19** + **TypeScript** + **Tailwind CSS v4** + **shadcn/ui** (radix-nova).
+Clipboard manager built with **Tauri v2** + **React 19** + **TypeScript** + **Tailwind CSS v4** + **shadcn/ui**.
 
-Records clipboard text and images in-memory with search, keyboard navigation, instant paste, and persistent pinned items.
+Records clipboard text and images with search, keyboard navigation, instant paste, persistent pinned items, and system tray.
+
+## Install
+
+Detects your distro and installs the right package from the latest release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JulioC354R/SudoClip/main/install.sh | sh
+```
+
+Or clone and run locally:
+
+```bash
+git clone https://github.com/JulioC354R/SudoClip && cd SudoClip
+./install.sh
+```
+
+| Distro | Package | Installed via |
+| ------ | ------- | ------------- |
+| Debian, Ubuntu, Mint, Pop!_OS | `.deb` | `apt` |
+| Fedora, RHEL, openSUSE | `.rpm` | `dnf` |
+| Arch, Manjaro, EndeavourOS | binary | `/usr/local/bin` |
+| Any other Linux | AppImage | `~/Applications/` |
+
+## Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JulioC354R/SudoClip/main/uninstall.sh | sh
+```
+
+Or run `./uninstall.sh` locally. It detects how the app was installed and removes it cleanly.
+
+## System tray (Linux)
+
+The tray icon appears near the clock/wifi area. Click it to toggle the window.
+
+**GNOME on Wayland** — install the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/):
+
+```bash
+sudo pacman -S gnome-shell-extension-appindicator
+gnome-extensions enable appindicatorsupport@rgcjonas.gmail.com
+```
+
+Then relog or restart the shell (Alt+F2, `r`, Enter).
+
+## Build
+
+```bash
+npm install
+npm run tauri dev       # development mode
+./build.sh deb          # build .deb
+./build.sh appimage     # build AppImage (applies NO_STRIP workaround)
+./build.sh rpm          # build .rpm
+./build.sh all          # build all
+```
+
+Outputs go to `src-tauri/target/release/bundle/`.
+
+> **AppImage note**: on modern distros (glibc 2.41+), the bundled `strip` in linuxdeploy chokes on `.relr.dyn` sections. `./build.sh appimage` handles this automatically with `NO_STRIP=1`.
 
 ## Features
 
@@ -10,92 +68,21 @@ Records clipboard text and images in-memory with search, keyboard navigation, in
 - **Smart detection** — auto-classifies items as URL, code, text, or image
 - **Search/filter** history
 - **Keyboard navigation** (↑/↓/Enter/Delete/Esc)
-- **Paste selected item** directly (simulates Ctrl+V via `ydotool` on Linux)
-- **Global shortcut** — configurable, default `Win+C`
-- **Configurable max items** (1–500, default 50)
-- **Pinned items** — persist pinned items across sessions (text and images, max 200)
-- **Sort pinned items** — 6 modes: addition asc/desc, alphabetical asc/desc, images first, text first
-- **Smart window positioning** — opens at cursor position, never off-screen
-- **Floating window** — 400×500, no decorations, always-on-top, skip taskbar
+- **Paste selected item** directly (Ctrl+V simulation via `ydotool`)
+- **Pinned items** — persist across sessions, 6 sort modes
+- **Floating window** — 400×600, no decorations, always-on-top, skip taskbar
 - **Auto-hide** on blur
+- **System tray** — toggle window from tray (click) or context menu
+- **Global shortcut** — configurable, default `Win+C`
 - **Settings panel** — configure shortcut, max items, pinned max items; reset to defaults
-- **Image persistence** — pinned images saved as raw RGBA data in `$APPDATA_DIR/pinned/`
-
-## Quick start
-
-```bash
-npm install
-npm run tauri dev      # dev mode (Vite + Tauri)
-npm run tauri build     # production build
-```
-
-## Dependencies (Linux)
-
-```bash
-# ydotool (paste simulation)
-sudo pacman -S ydotool
-
-# xdotool (cursor positioning on X11, optional — fallback to center-screen)
-sudo pacman -S xdotool
-```
+- **Image persistence** — pinned images saved as raw RGBA in `$APPDATA_DIR/pinned/`
 
 ## Usage
 
 ```bash
-./src-tauri/target/release/sudoclip          # launch app
-./src-tauri/target/release/sudoclip toggle    # toggle window from CLI
+./src-tauri/target/release/sudoclip          # launch
+./src-tauri/target/release/sudoclip toggle    # toggle window (Wayland shortcut test)
 ```
-
-## Tech stack
-
-| Layer       | Tech                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------- |
-| Frontend    | React 19, Vite 7, TypeScript, Tailwind CSS v4                                         |
-| UI          | shadcn/ui (radix-nova), lucide-react                                                  |
-| Backend     | Rust, Tauri v2                                                                        |
-| Plugins     | clipboard-manager, global-shortcut, single-instance, store, log, opener               |
-| Windows     | 400×500, decorations: false, skipTaskbar: true, alwaysOnTop: true                     |
-| Persistence | tauri-plugin-store for settings + pinned items; image files in `$APPDATA_DIR/pinned/` |
-
-## Scripts
-
-```bash
-npm run build        # tsc && vite build
-npm run dev          # frontend-only vite dev
-npm run tauri build  # full Tauri production build
-```
-
-## Project structure
-
-```
-src/
-├── App.tsx                    # Main app: state, polling, tabs, handlers
-├── hooks/
-│   ├── useKeyboardNav.ts      # Generic keyboard navigation hook
-│   └── useScrollIntoView.ts   # Scroll selected item into view
-├── components/
-│   ├── ClipboardItem.tsx      # History/pinned item row with pin button
-│   ├── Footer.tsx             # Bottom bar (item count, clear button)
-│   ├── TitleBar.tsx           # Custom window title bar (close + settings)
-│   ├── SettingsPanel.tsx      # Settings overlay (shortcut, limits, reset)
-│   └── PinnedList.tsx         # Pinned items tab with sort controls
-├── lib/
-│   ├── clipboard.ts           # Clipboard read/write, paste pipeline, item factory
-│   ├── constants.ts           # Named constants (poll interval, limits, etc.)
-│   ├── pinned.ts              # Pinned items store + image file I/O
-│   ├── settings.ts            # Settings store (tauri-plugin-store)
-│   ├── types.ts               # ClipboardItem, PinnedItem interfaces
-│   └── utils.ts               # cn(), clamp(), timeAgo(), generateId(), rgbaToDataUrl()
-src-tauri/src/
-├── lib.rs                     # Tauri app setup, plugin registration
-├── main.rs                    # Entry point
-├── cursor.rs                  # Get cursor position (xdotool/enigo)
-├── toggle.rs                  # Window toggle via CLI or single-instance
-├── paste.rs                   # Simulate Ctrl+V paste
-└── pinned.rs                  # Save/read/delete pinned image files
-```
-
-## Keyboard shortcuts
 
 | Key            | Action               |
 | -------------- | -------------------- |
@@ -104,41 +91,98 @@ src-tauri/src/
 | Delete         | Delete selected item |
 | Esc            | Hide window          |
 | Win+C (global) | Toggle window        |
+| Tray click     | Toggle window        |
 
-## Building for release
+## Auto-start
 
-### 1. Production build
-
-```bash
-npm run tauri build
-```
-
-Outputs:
-
-- **Binary:** `src-tauri/target/release/sudoclip`
-- **Bundles:** `src-tauri/target/release/bundle/` (`.deb`, `.rpm`, `.AppImage` depending on config)
-
-### 2. Create a GitHub Release (manual)
-
-1. Go to your GitHub repository
-2. Click **Releases** → **Create a new release**
-3. Tag: `v1.0.0` (or your version)
-4. Title: `v1.0.0`
-5. Description of changes
-6. Upload the artifacts from `src-tauri/target/release/bundle/`:
-   - `sudoclip_1.0.0_amd64.deb` — Debian/Ubuntu
-   - `sudoclip-1.0.0-1.x86_64.rpm` — Fedora/RHEL
-   - `sudoclip_1.0.0_amd64.AppImage` — any Linux (portable)
-7. Publish release
+### Linux
 
 ```bash
-# Debian/Ubuntu
-sudo dpkg -i sudoclip_1.0.0_amd64.deb
+# Desktop autostart (per-user)
+mkdir -p ~/.config/autostart
+cat > ~/.config/autostart/sudoclip.desktop << EOF
+[Desktop Entry]
+Type=Application
+Name=SudoClip
+Exec=/usr/local/bin/sudoclip
+Terminal=false
+X-GNOME-Autostart-enabled=true
+EOF
 
-# Fedora/RHEL
-sudo rpm -i sudoclip-1.0.0-1.x86_64.rpm
+# Or systemd user service
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/sudoclip.service << EOF
+[Unit]
+Description=SudoClip clipboard manager
+After=graphical-session.target
 
-# Any Linux (portable)
-chmod +x sudoclip_1.0.0_amd64.AppImage
-./sudoclip_1.0.0_amd64.AppImage
+[Service]
+ExecStart=/usr/local/bin/sudoclip
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+systemctl --user enable --now sudoclip.service
 ```
+
+### Windows
+
+Press `Win+R`, type `shell:startup`, create a shortcut to `sudoclip.exe`.
+
+## Dependencies (Linux)
+
+```bash
+sudo pacman -S ydotool          # paste simulation
+sudo pacman -S xdotool          # cursor positioning (X11, optional)
+```
+
+## Project structure
+
+```
+src/
+├── App.tsx                    # Main app: state, polling, tabs, handlers
+├── components/
+│   ├── ClipboardItem.tsx      # History/pinned item row
+│   ├── ClipboardPen.tsx       # App icon (clipboard-pen SVG)
+│   ├── Footer.tsx             # Bottom bar
+│   ├── PinnedList.tsx         # Pinned items tab
+│   ├── SettingsPanel.tsx      # Settings overlay
+│   └── TitleBar.tsx           # Custom title bar
+├── hooks/
+│   ├── useKeyboardNav.ts      # Keyboard navigation
+│   └── useScrollIntoView.ts   # Auto-scroll selected item
+└── lib/
+    ├── clipboard.ts           # Clipboard I/O, paste, item factory
+    ├── constants.ts           # Named constants
+    ├── pinned.ts              # Pinned items store + image I/O
+    ├── settings.ts            # Settings store
+    ├── types.ts               # TypeScript interfaces
+    └── utils.ts               # cn(), clamp(), timeAgo(), etc.
+src-tauri/src/
+├── lib.rs                     # App setup, plugins, tray
+├── main.rs                    # Entry point
+├── cursor.rs                  # Cursor position
+├── paste.rs                   # Ctrl+V simulation
+├── pinned.rs                  # Image file I/O
+├── toggle.rs                  # Window toggle
+└── tray.rs                    # System tray icon
+```
+
+## Tech stack
+
+| Layer       | Tech                                                                |
+| ----------- | ------------------------------------------------------------------- |
+| Frontend    | React 19, Vite 7, TypeScript, Tailwind CSS v4                       |
+| UI          | shadcn/ui (radix-nova), lucide-react                                |
+| Backend     | Rust, Tauri v2                                                      |
+| Plugins     | clipboard-manager, global-shortcut, single-instance, store, log, opener |
+| Tray        | Tauri v2 built-in (`tray-icon` feature)                             |
+| Persistence | tauri-plugin-store; image files in `$APPDATA_DIR/pinned/`           |
+
+## Release
+
+1. Update `VERSION` in `install.sh`
+2. Build all bundles: `./build.sh all`
+3. Create a GitHub release with tag `v<VERSION>`
+4. Upload artifacts from `src-tauri/target/release/bundle/`
