@@ -8,7 +8,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  shortcutKey: 'Alt+V',
+  shortcutKey: 'Super+C',
   maxItems: 50,
   pinnedMaxItems: 20,
 };

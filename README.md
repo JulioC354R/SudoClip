@@ -11,7 +11,7 @@ Records clipboard text and images in-memory with search, keyboard navigation, in
 - **Search/filter** history
 - **Keyboard navigation** (↑/↓/Enter/Delete/Esc)
 - **Paste selected item** directly (simulates Ctrl+V via `ydotool` on Linux)
-- **Global shortcut** — configurable, default `Alt+V`
+- **Global shortcut** — configurable, default `Win+C`
 - **Configurable max items** (1–500, default 50)
 - **Pinned items** — persist pinned items across sessions (text and images, max 200)
 - **Sort pinned items** — 6 modes: addition asc/desc, alphabetical asc/desc, images first, text first
@@ -48,13 +48,13 @@ sudo pacman -S xdotool
 
 ## Tech stack
 
-| Layer       | Tech                                                              |
-| ----------- | ----------------------------------------------------------------- |
-| Frontend    | React 19, Vite 7, TypeScript, Tailwind CSS v4                     |
-| UI          | shadcn/ui (radix-nova), lucide-react                              |
-| Backend     | Rust, Tauri v2                                                    |
-| Plugins     | clipboard-manager, global-shortcut, single-instance, store, log, opener |
-| Windows     | 400×500, decorations: false, skipTaskbar: true, alwaysOnTop: true |
+| Layer       | Tech                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Frontend    | React 19, Vite 7, TypeScript, Tailwind CSS v4                                         |
+| UI          | shadcn/ui (radix-nova), lucide-react                                                  |
+| Backend     | Rust, Tauri v2                                                                        |
+| Plugins     | clipboard-manager, global-shortcut, single-instance, store, log, opener               |
+| Windows     | 400×500, decorations: false, skipTaskbar: true, alwaysOnTop: true                     |
 | Persistence | tauri-plugin-store for settings + pinned items; image files in `$APPDATA_DIR/pinned/` |
 
 ## Scripts
@@ -103,7 +103,7 @@ src-tauri/src/
 | Enter          | Paste selected item  |
 | Delete         | Delete selected item |
 | Esc            | Hide window          |
-| Alt+V (global) | Toggle window        |
+| Win+C (global) | Toggle window        |
 
 ## Building for release
 
@@ -114,6 +114,7 @@ npm run tauri build
 ```
 
 Outputs:
+
 - **Binary:** `src-tauri/target/release/sudoclip`
 - **Bundles:** `src-tauri/target/release/bundle/` (`.deb`, `.rpm`, `.AppImage` depending on config)
 
@@ -129,7 +130,6 @@ Outputs:
    - `sudoclip-1.0.0-1.x86_64.rpm` — Fedora/RHEL
    - `sudoclip_1.0.0_amd64.AppImage` — any Linux (portable)
 7. Publish release
-
 
 ```bash
 # Debian/Ubuntu

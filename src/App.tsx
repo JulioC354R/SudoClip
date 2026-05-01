@@ -78,7 +78,7 @@ export default function App() {
 
     const init = async () => {
       await unregisterAll();
-      await register('Alt+V', toggleWindow);
+      await register(DEFAULT_SETTINGS.shortcutKey, toggleWindow);
 
       const [s, pinned] = await Promise.all([
         loadSettings(),
@@ -88,7 +88,7 @@ export default function App() {
       setSettings(s);
       setPinnedItems(pinned);
 
-      if (s.shortcutKey !== 'Alt+V') {
+      if (s.shortcutKey !== DEFAULT_SETTINGS.shortcutKey) {
         await unregisterAll();
         await register(s.shortcutKey, toggleWindow);
       }

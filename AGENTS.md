@@ -16,14 +16,14 @@ npm run dev               # frontend-only: vite
 - **Frontend**: `src/` — React app with `@/` path alias (`./src/`)
 - **Backend**: `src-tauri/src/` — Rust with plugins: clipboard-manager, global-shortcut, single-instance, store, log, opener
 - **Window**: 400×500, no decorations, skip taskbar, always-on-top (`src-tauri/tauri.conf.json:13-21`)
-- **Global shortcut**: configurable in settings (default `Alt+V`), registered in `src/App.tsx` via `@tauri-apps/plugin-global-shortcut`
+- **Global shortcut**: configurable in settings (default `Win+C`), registered in `src/App.tsx` via `@tauri-apps/plugin-global-shortcut`
 - **Clipboard polling**: reads clipboard every 500ms (`src/App.tsx`)
 - **Window positioning**: opens at cursor position (via `cursor.rs`), clamped to monitor bounds
 - **Toggle via CLI**: `./sudoclip toggle` toggles window — used for Wayland shortcut testing
 
 ## Settings
 
-- **`src/lib/settings.ts`** — wrapper around `tauri-plugin-store` (`settings.json`). Fields: `shortcutKey` (default `Alt+V`), `maxItems` (default 50, max 500), `pinnedMaxItems` (default 20, max 200).
+- **`src/lib/settings.ts`** — wrapper around `tauri-plugin-store` (`settings.json`). Fields: `shortcutKey` (default `Win+C`), `maxItems` (default 50, max 500), `pinnedMaxItems` (default 20, max 200).
 - **`src/components/SettingsPanel.tsx`** — overlay UI with:
   - Key recorder (click to capture key combo, requires at least one modifier)
   - Max Items input (1–500, clamped)

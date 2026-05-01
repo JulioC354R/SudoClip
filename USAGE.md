@@ -20,7 +20,7 @@ Launch the app:
 ./src-tauri/target/release/sudoclip
 ```
 
-The window starts hidden. Press the global shortcut (**Alt+V** by default) to show it. Copy any text or image while the app is running — it appears in the history automatically.
+The window starts hidden. Press the global shortcut (**Win+C** by default) to show it. Copy any text or image while the app is running — it appears in the history automatically.
 
 ---
 
@@ -91,10 +91,10 @@ The app window has four sections:
 
 Items are grouped by age:
 
-| Section   | Age               |
-| --------- | ----------------- |
-| **Today** | Less than 24 hours |
-| **Earlier** | 24 hours or more  |
+| Section     | Age                |
+| ----------- | ------------------ |
+| **Today**   | Less than 24 hours |
+| **Earlier** | 24 hours or more   |
 
 ### Limits
 
@@ -104,13 +104,13 @@ Items are grouped by age:
 
 ### Keyboard navigation
 
-| Key       | Action                  |
-| --------- | ----------------------- |
-| ↑         | Move selection up       |
-| ↓         | Move selection down     |
-| Enter     | Paste selected item     |
-| Delete    | Remove selected item    |
-| Esc       | Hide window             |
+| Key    | Action               |
+| ------ | -------------------- |
+| ↑      | Move selection up    |
+| ↓      | Move selection down  |
+| Enter  | Paste selected item  |
+| Delete | Remove selected item |
+| Esc    | Hide window          |
 
 ### Paste behavior
 
@@ -128,10 +128,10 @@ Pinned items are **persisted across app restarts**. Use them to keep important c
 
 ### Pin / Unpin
 
-| Context    | Action                                      |
-| ---------- | ------------------------------------------- |
-| **History** | Hover an item → click the **pin icon** (📌) to move it to Pinned |
-| **Pinned**  | Hover a pinned item → click the **unpin icon** (📌 off) to move it back to History |
+| Context     | Action                                                                               |
+| ----------- | ------------------------------------------------------------------------------------ |
+| **History** | Hover an item → click the **pin icon** (📌) to move it to Pinned                     |
+| **Pinned**  | Hover a pinned item → click the **unpin icon** (📌 off) to move it back to History   |
 | **Pinned**  | Click the **✕ icon** to permanently delete from pinned (does not go back to history) |
 
 - Pinning removes the item from History and adds it to Pinned
@@ -142,14 +142,14 @@ Pinned items are **persisted across app restarts**. Use them to keep important c
 
 In the Pinned tab, click the sort icon (next to the count) to cycle through 6 sort modes:
 
-| # | Mode            | Icon                           | Description                |
-| - | --------------- | ------------------------------ | -------------------------- |
-| 1 | **Added ↑**     | `ArrowUpWideNarrow`            | Oldest first               |
-| 2 | **Added ↓**     | `ArrowDownWideNarrow`          | Newest first (default)     |
-| 3 | **A-Z**         | `ArrowUpAZ`                    | Content alphabetical A→Z   |
-| 4 | **Z-A**         | `ArrowDownZA`                  | Content alphabetical Z→A   |
-| 5 | **Images first** | `Image`                      | Images before text items   |
-| 6 | **Text first**   | `Type`                       | Text before image items    |
+| #   | Mode             | Icon                  | Description              |
+| --- | ---------------- | --------------------- | ------------------------ |
+| 1   | **Added ↑**      | `ArrowUpWideNarrow`   | Oldest first             |
+| 2   | **Added ↓**      | `ArrowDownWideNarrow` | Newest first (default)   |
+| 3   | **A-Z**          | `ArrowUpAZ`           | Content alphabetical A→Z |
+| 4   | **Z-A**          | `ArrowDownZA`         | Content alphabetical Z→A |
+| 5   | **Images first** | `Image`               | Images before text items |
+| 6   | **Text first**   | `Type`                | Text before image items  |
 
 ### Limits
 
@@ -177,7 +177,7 @@ Click the **gear icon (⚙)** in the TitleBar to open settings.
 
 - Click the shortcut button and press the desired key combination
 - Requires at least one modifier key (Ctrl, Alt, Shift, or Super/Cmd)
-- Default: `Alt+V`
+- Default: `Win+C`
 - Changes take effect immediately
 
 ### Max Items
@@ -195,7 +195,7 @@ Click the **gear icon (⚙)** in the TitleBar to open settings.
 ### Reset to Defaults
 
 - Resets all settings to defaults:
-  - Shortcut: `Alt+V`
+  - Shortcut: `Win+C`
   - Max Items: 50
   - Pinned Max Items: 20
 - **Does not affect existing pinned items**
@@ -206,24 +206,24 @@ Click the **gear icon (⚙)** in the TitleBar to open settings.
 
 ### Global
 
-| Shortcut           | Action              |
-| ------------------ | ------------------- |
-| Alt+V (configurable) | Toggle window show/hide |
+| Shortcut             | Action                  |
+| -------------------- | ----------------------- |
+| Win+C (configurable) | Toggle window show/hide |
 
 ### Inside window
 
-| Key            | Action                        |
-| -------------- | ----------------------------- |
-| ↑ / ↓          | Navigate list up/down          |
-| Enter          | Paste selected item            |
-| Delete         | Delete selected item           |
-| Esc            | Hide window / Cancel action   |
+| Key    | Action                      |
+| ------ | --------------------------- |
+| ↑ / ↓  | Navigate list up/down       |
+| Enter  | Paste selected item         |
+| Delete | Delete selected item        |
+| Esc    | Hide window / Cancel action |
 
 ### In Settings
 
-| Key            | Action                        |
-| -------------- | ----------------------------- |
-| Esc            | Close settings                |
+| Key | Action         |
+| --- | -------------- |
+| Esc | Close settings |
 
 ### CLI
 
@@ -237,17 +237,18 @@ Click the **gear icon (⚙)** in the TitleBar to open settings.
 
 ### Settings (`settings.json`)
 
-| Key              | Type   | Default | Description                    |
-| ---------------- | ------ | ------- | ------------------------------ |
-| `shortcutKey`    | string | Alt+V   | Global shortcut to toggle window |
-| `maxItems`       | number | 50      | Max clipboard history items    |
-| `pinnedMaxItems` | number | 20      | Max pinned items               |
+| Key              | Type   | Default | Description                      |
+| ---------------- | ------ | ------- | -------------------------------- |
+| `shortcutKey`    | string | Win+C   | Global shortcut to toggle window |
+| `maxItems`       | number | 50      | Max clipboard history items      |
+| `pinnedMaxItems` | number | 20      | Max pinned items                 |
 
 Location: `$APPDATA_DIR/plugins/store/settings.json`
 
 ### Pinned items (`pinned.json`)
 
 Each pinned item stores:
+
 - `id`, `contentType`, `content` (for text), `timestamp`
 - For images: `imageFile` (relative path), `imageWidth`, `imageHeight`, `imageSignature`
 
@@ -256,10 +257,10 @@ Image files: `$APPDATA_DIR/pinned/<id>` (raw RGBA pixel data)
 
 ### App data directory
 
-| Platform | Path |
-| -------- | ---- |
-| Linux    | `~/.local/share/com.sudoclip.app/` |
-| macOS    | `~/Library/Application Support/com.sudoclip.app/` |
+| Platform | Path                                                |
+| -------- | --------------------------------------------------- |
+| Linux    | `~/.local/share/com.sudoclip.app/`                  |
+| macOS    | `~/Library/Application Support/com.sudoclip.app/`   |
 | Windows  | `C:\Users\<user>\AppData\Roaming\com.sudoclip.app\` |
 
 ### Volatile data
