@@ -8,3 +8,16 @@ export interface ClipboardItem {
   imageHeight?: number;
   imageSignature?: string;
 }
+
+export interface PinnedItem {
+  id: string;
+  contentType: 'url' | 'code' | 'text' | 'image';
+  content?: string;
+  imageFile?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageSignature?: string;
+  timestamp: number;
+  imageDataUrl?: string;
+  imageBytes?: number[];
+}

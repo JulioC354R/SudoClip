@@ -1,4 +1,4 @@
-import { Link, Code2, Type, Image, X } from 'lucide-react';
+import { Link, Code2, Type, Image, X, Pin, PinOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import type { ClipboardItem } from '@/lib/types';
@@ -10,6 +10,8 @@ interface ClipboardItemRowProps {
   onSelect: () => void;
   onPaste: () => void;
   onDelete: () => void;
+  onPin?: () => void;
+  pinned?: boolean;
 }
 
 function TypeIcon({ type }: { type: string }) {
@@ -45,6 +47,8 @@ export default function ClipboardItemRow({
   onSelect,
   onPaste,
   onDelete,
+  onPin,
+  pinned,
 }: ClipboardItemRowProps) {
   return (
     <div
@@ -98,19 +102,38 @@ export default function ClipboardItemRow({
         </div>
       </div>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className={cn(
-          'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground',
-          'opacity-0 transition-all group-hover:opacity-100',
-          'hover:bg-destructive/10 hover:text-destructive',
+      <div className="mt-0.5 flex shrink-0 items-center gap-0.5">
+        {onPin && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPin();
+            }}
+            className={cn(
+              'flex size-6 items-center justify-center rounded-md',
+              'opacity-0 transition-all group-hover:opacity-100',
+              pinned
+                ? 'text-primary hover:text-primary/80'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+          </button>
         )}
-      >
-        <X className="size-3.5" />
-      </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className={cn(
+            'flex size-6 items-center justify-center rounded-md text-muted-foreground',
+            'opacity-0 transition-all group-hover:opacity-100',
+            'hover:bg-destructive/10 hover:text-destructive',
+          )}
+        >
+          <X className="size-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

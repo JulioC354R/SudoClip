@@ -3,12 +3,29 @@ import { Store } from '@tauri-apps/plugin-store';
 export interface AppSettings {
   shortcutKey: string;
   maxItems: number;
+  pinnedMaxItems: number;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  shortcutKey: 'Alt+V',
+  shortcutKey: getDefaultShortcut(),
   maxItems: 50,
+  pinnedMaxItems: 20,
 };
+
+function getDefaultShortcut(): string {
+  const platform = navigator.userAgent.toLowerCase();
+
+  if (platform.includes('win')) {
+    return 'Win+C';
+  }
+
+  if (platform.includes('mac')) {
+    return 'Cmd+C';
+  }
+
+  // Linux (fallback)
+  return 'Super+C';
+}
 
 let store: Store | null = null;
 
@@ -23,11 +40,17 @@ export async function loadSettings(): Promise<AppSettings> {
     const s = await getStore();
     const shortcutKey = await s.get<string>('shortcutKey');
     const maxItems = await s.get<number>('maxItems');
+    const pinnedMaxItems = await s.get<number>('pinnedMaxItems');
     return {
       shortcutKey: shortcutKey ?? DEFAULT_SETTINGS.shortcutKey,
-      maxItems: maxItems != null
-        ? Math.max(1, Math.min(500, maxItems))
-        : DEFAULT_SETTINGS.maxItems,
+      maxItems:
+        maxItems != null
+          ? Math.max(1, Math.min(500, maxItems))
+          : DEFAULT_SETTINGS.maxItems,
+      pinnedMaxItems:
+        pinnedMaxItems != null
+          ? Math.max(1, Math.min(200, pinnedMaxItems))
+          : DEFAULT_SETTINGS.pinnedMaxItems,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -42,6 +65,9 @@ export async function saveSetting<K extends keyof AppSettings>(
     const s = await getStore();
     if (key === 'maxItems' && typeof value === 'number') {
       value = Math.max(1, Math.min(500, value)) as AppSettings[K];
+    }
+    if (key === 'pinnedMaxItems' && typeof value === 'number') {
+      value = Math.max(1, Math.min(200, value)) as AppSettings[K];
     }
     await s.set(key, value);
     await s.save();

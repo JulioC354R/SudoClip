@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 interface SettingsPanelProps {
   shortcutKey: string;
   maxItems: number;
+  pinnedMaxItems: number;
   onShortcutKeyChange: (key: string) => void;
   onMaxItemsChange: (max: number) => void;
+  onPinnedMaxItemsChange: (max: number) => void;
   onReset: () => void;
   onClose: () => void;
 }
@@ -15,8 +17,10 @@ interface SettingsPanelProps {
 export default function SettingsPanel({
   shortcutKey,
   maxItems,
+  pinnedMaxItems,
   onShortcutKeyChange,
   onMaxItemsChange,
+  onPinnedMaxItemsChange,
   onReset,
   onClose,
 }: SettingsPanelProps) {
@@ -69,6 +73,17 @@ export default function SettingsPanel({
     if (isNaN(val)) return;
     val = Math.max(1, Math.min(500, val));
     onMaxItemsChange(val);
+  };
+
+  const handlePinnedMaxItemsChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const raw = e.target.value;
+    if (raw === '') return;
+    let val = parseInt(raw, 10);
+    if (isNaN(val)) return;
+    val = Math.max(1, Math.min(200, val));
+    onPinnedMaxItemsChange(val);
   };
 
   return (
@@ -135,6 +150,24 @@ export default function SettingsPanel({
             <p className="text-[10px] text-muted-foreground/60">
               Maximum clipboard items to store (1–500). Values above 500 are
               capped automatically.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              Pinned Max Items
+            </label>
+            <Input
+              type="number"
+              min={1}
+              max={200}
+              value={pinnedMaxItems}
+              onChange={handlePinnedMaxItemsChange}
+              className="h-9"
+            />
+            <p className="text-[10px] text-muted-foreground/60">
+              Maximum pinned items (1–200). Values above 200 are capped
+              automatically.
             </p>
           </div>
 

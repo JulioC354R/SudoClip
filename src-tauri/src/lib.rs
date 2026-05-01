@@ -1,4 +1,5 @@
 mod paste;
+mod pinned;
 mod toggle;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -20,7 +21,12 @@ pub fn run() {
     builder = toggle::setup(builder);
 
     builder = builder
-        .invoke_handler(tauri::generate_handler![paste::simulate_paste])
+        .invoke_handler(tauri::generate_handler![
+            paste::simulate_paste,
+            pinned::save_pinned_image,
+            pinned::read_pinned_image,
+            pinned::delete_pinned_image,
+        ])
         .setup(|app| {
             if toggle::should_toggle() {
                 toggle::handle_toggle(&app.handle());

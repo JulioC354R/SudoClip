@@ -2,18 +2,23 @@
 
 Clipboard manager built with **Tauri v2** + **React 19** + **TypeScript** + **Tailwind CSS v4** + **shadcn/ui** (radix-nova).
 
-Records clipboard text history in-memory (max 50 items, **not persisted** between sessions) with search, keyboard navigation, and instant paste.
+Records clipboard text and images in-memory with search, keyboard navigation, instant paste, and persistent pinned items.
 
 ## Features
 
-- Polls clipboard every 500ms and captures new text
-- Auto-detects URLs, code snippets, and plain text
-- Search/filter history
-- Keyboard navigation (↑/↓/Enter/Delete/Esc)
-- Paste selected item directly (simulates Ctrl+V via `ydotool` on Linux)
-- Global shortcut **Alt+V** to toggle window
-- Floating window: 400×500, no decorations, always-on-top, skip taskbar
-- Auto-hides on blur
+- **Clipboard polling** — captures text and images every 500ms
+- **Smart detection** — auto-classifies items as URL, code, text, or image
+- **Search/filter** history
+- **Keyboard navigation** (↑/↓/Enter/Delete/Esc)
+- **Paste selected item** directly (simulates Ctrl+V via `ydotool` on Linux)
+- **Global shortcut** — configurable, default `Alt+V`
+- **Configurable max items** (1–500, default 50)
+- **Pinned items** — persist pinned items across sessions (text and images, max 200)
+- **Sort pinned items** — 6 modes: addition asc/desc, alphabetical asc/desc, images first, text first
+- **Floating window** — 400×500, no decorations, always-on-top, skip taskbar
+- **Auto-hide** on blur
+- **Settings panel** — configure shortcut, max items, pinned max items; reset to defaults
+- **Image persistence** — pinned images saved as raw RGBA data in `$APPDATA_DIR/pinned/`
 
 ## Quick start
 
@@ -36,12 +41,6 @@ sudo pacman -S ydotool
 ./src-tauri/target/release/sudoclip toggle    # toggle window from CLI
 ```
 
-Or use the shortcut script:
-
-```bash
-./kill-sudoclip.sh                           # kill the app
-```
-
 ## Tech stack
 
 | Layer       | Tech                                                              |
@@ -49,9 +48,9 @@ Or use the shortcut script:
 | Frontend    | React 19, Vite 7, TypeScript, Tailwind CSS v4                     |
 | UI          | shadcn/ui (radix-nova), lucide-react                              |
 | Backend     | Rust, Tauri v2                                                    |
-| Plugins     | clipboard-manager, global-shortcut, single-instance, log, opener  |
+| Plugins     | clipboard-manager, global-shortcut, single-instance, store, log, opener |
 | Windows     | 400×500, decorations: false, skipTaskbar: true, alwaysOnTop: true |
-| Persistence | None — in-memory only (history lost on restart)                   |
+| Persistence | tauri-plugin-store for settings + pinned items; image files in `$APPDATA_DIR/pinned/` |
 
 ## Scripts
 
@@ -65,28 +64,32 @@ npm run tauri build  # full Tauri production build
 
 ```
 src/
-├── App.tsx                  # Main app: state, polling, keyboard handling
+├── App.tsx                    # Main app: state, polling, keyboard, tabs
 ├── components/
-│   ├── ClipboardItem.tsx    # Single history item row
-│   ├── Footer.tsx           # Bottom bar (item count, clear button)
-│   └── TitleBar.tsx         # Custom window title bar
+│   ├── ClipboardItem.tsx      # History/pinned item row with pin button
+│   ├── Footer.tsx             # Bottom bar (item count, clear button)
+│   ├── TitleBar.tsx           # Custom window title bar (close + settings)
+│   ├── SettingsPanel.tsx      # Settings overlay (shortcut, limits, reset)
+│   └── PinnedList.tsx         # Pinned items tab with sort controls
 ├── lib/
-│   ├── clipboard.ts         # Clipboard read/write, content detection, ID gen
-│   ├── shortcuts.ts         # Global shortcut (Alt+V) registration
-│   ├── types.ts             # ClipboardItem interface
-│   └── utils.ts             # cn() utility
+│   ├── clipboard.ts           # Clipboard read/write, content detection, ID gen
+│   ├── settings.ts            # Settings store (tauri-plugin-store)
+│   ├── pinned.ts              # Pinned items store + image file I/O
+│   ├── types.ts               # ClipboardItem, PinnedItem interfaces
+│   └── utils.ts               # cn() utility
 src-tauri/src/
-├── lib.rs                   # Tauri app setup, plugin registration
-├── main.rs                  # Entry point
-├── toggle.rs                # Window toggle via CLI or single-instance
-└── paste.rs                 # Simulate Ctrl+V paste
+├── lib.rs                     # Tauri app setup, plugin registration
+├── main.rs                    # Entry point
+├── toggle.rs                  # Window toggle via CLI or single-instance
+├── paste.rs                   # Simulate Ctrl+V paste
+└── pinned.rs                  # Save/read/delete pinned image files
 ```
 
-## Keyboard shortcuts (inside window)
+## Keyboard shortcuts
 
 | Key            | Action               |
 | -------------- | -------------------- |
-| ↑ / ↓          | Navigate history     |
+| ↑ / ↓          | Navigate list        |
 | Enter          | Paste selected item  |
 | Delete         | Delete selected item |
 | Esc            | Hide window          |
