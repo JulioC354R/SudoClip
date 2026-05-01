@@ -14,6 +14,7 @@ export async function setupShortcuts() {
         window.hide();
       } else {
         window.show();
+        window.setFocus();
       }
     }
   });

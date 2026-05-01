@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { debug } from '@tauri-apps/plugin-log';
@@ -65,12 +66,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const appWindow = getCurrentWindow();
-    const unlistenFocus = appWindow.onFocusChanged(({ payload: focused }) => {
-      if (focused) resetAndFocus();
+    const unlistenBlur = listen('tauri://blur', () => {
+      getCurrentWindow().hide();
     });
+    const unlistenFocus = listen('tauri://focus', () => resetAndFocus());
 
     return () => {
+      unlistenBlur.then((fn) => fn());
       unlistenFocus.then((fn) => fn());
     };
   }, [resetAndFocus]);

@@ -5,7 +5,7 @@ mod toggle;
 pub fn run() {
     let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {}));
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}));
 
     builder = builder
         .plugin(
