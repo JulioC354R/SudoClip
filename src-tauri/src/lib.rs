@@ -3,6 +3,7 @@ mod paste;
 mod pinned;
 mod toggle;
 mod tray;
+mod wayland_shortcut;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -22,6 +23,7 @@ pub fn run() {
     builder = toggle::setup(builder);
 
     builder = builder
+        .manage(wayland_shortcut::SharedShortcut::default())
         .invoke_handler(tauri::generate_handler![
             paste::simulate_paste,
             pinned::save_pinned_image,
@@ -29,6 +31,8 @@ pub fn run() {
             pinned::delete_pinned_image,
             pinned::clear_pinned_dir,
             cursor::get_cursor_position,
+            wayland_shortcut::init_wayland_shortcut,
+            wayland_shortcut::update_wayland_shortcut,
         ])
         .setup(|app| {
             if toggle::should_toggle() {

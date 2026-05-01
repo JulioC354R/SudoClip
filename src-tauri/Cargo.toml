@@ -25,6 +25,10 @@ serde_json = "1"
 tauri-plugin-log = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-store = "2"
+log = "0.4"
+tokio = { version = "1", features = ["full"] }
+zbus = "5"
+futures-util = "0.3"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"

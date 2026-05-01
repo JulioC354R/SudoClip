@@ -89,6 +89,8 @@ export default function App() {
       setSettings(s);
       setPinnedItems(pinned);
 
+      await invoke('init_wayland_shortcut', { key: s.shortcutKey }).catch(() => {});
+
       if (s.shortcutKey !== DEFAULT_SETTINGS.shortcutKey) {
         await unregisterAll();
         await register(s.shortcutKey, toggleWindow);
@@ -243,6 +245,11 @@ export default function App() {
     await saveSetting('shortcutKey', key);
     await unregisterAll();
     await register(key, toggleWindow);
+    try {
+      await invoke('update_wayland_shortcut', { key });
+    } catch {
+      // not on Wayland, ignore
+    }
   }, []);
 
   const handleMaxItemsChange = useCallback(async (max: number) => {
@@ -260,6 +267,7 @@ export default function App() {
     setSettings({ ...DEFAULT_SETTINGS });
     await unregisterAll();
     await register(DEFAULT_SETTINGS.shortcutKey, toggleWindow);
+    await invoke('update_wayland_shortcut', { key: DEFAULT_SETTINGS.shortcutKey }).catch(() => {});
   }, []);
 
   const handleClearAllPinned = useCallback(async () => {
