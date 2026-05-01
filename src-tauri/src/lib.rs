@@ -2,6 +2,7 @@ mod cursor;
 mod paste;
 mod pinned;
 mod toggle;
+mod tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -33,7 +34,13 @@ pub fn run() {
             if toggle::should_toggle() {
                 toggle::handle_toggle(&app.handle());
             }
+            let _ = tray::create_tray(&app.handle());
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                let _ = window.hide();
+            }
         });
 
     builder

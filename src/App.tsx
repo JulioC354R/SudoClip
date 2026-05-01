@@ -4,7 +4,8 @@ import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow, PhysicalPosition, currentMonitor, availableMonitors } from '@tauri-apps/api/window';
 import { debug } from '@tauri-apps/plugin-log';
 import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut';
-import { Search, X, Clipboard } from 'lucide-react';
+import { Search, X } from 'lucide-react';
+import ClipboardPen from '@/components/ClipboardPen';
 import {
   readClipboard,
   readImageFromClipboard,
@@ -367,7 +368,7 @@ export default function App() {
               {filtered.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
                   <div className="flex size-14 items-center justify-center rounded-2xl bg-muted/50">
-                    <Clipboard className="size-6 text-muted-foreground/40" />
+                    <ClipboardPen className="size-6 text-muted-foreground/40" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">

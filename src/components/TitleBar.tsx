@@ -1,4 +1,5 @@
-import { Clipboard, X, Settings } from 'lucide-react';
+import { X, Settings } from 'lucide-react';
+import ClipboardPen from '@/components/ClipboardPen';
 import { Button } from '@/components/ui/button';
 
 interface TitleBarProps {
@@ -21,7 +22,7 @@ export default function TitleBar({
     >
       <div className="flex items-center gap-2" data-tauri-drag-region>
         <div className="flex size-6 items-center justify-center rounded-md bg-primary/10">
-          <Clipboard className="size-3.5 text-primary" />
+          <ClipboardPen className="size-3.5 text-primary" />
         </div>
         <span className="text-sm font-semibold tracking-tight text-foreground">
           SudoClip
