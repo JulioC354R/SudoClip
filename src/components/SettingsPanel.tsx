@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, RotateCcw, Trash2 } from 'lucide-react';
+import { X, RotateCcw, Trash2, ExternalLink } from 'lucide-react';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { clamp } from '@/lib/utils';
 import { MAX_ITEMS_MAX, PINNED_MAX_ITEMS_MAX } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
@@ -190,6 +191,39 @@ export default function SettingsPanel({
             <p className="mt-1.5 text-[10px] text-muted-foreground/60">
               Deletes all pinned items and their image files from disk.
             </p>
+          </div>
+
+          <div className="border-t border-border/50 pt-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => openUrl('https://github.com/JulioC354R')}
+                title="JulioC354R"
+                className="shrink-0 overflow-hidden rounded-full ring-offset-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <img
+                  src="https://github.com/JulioC354R.png"
+                  alt="JulioC354R"
+                  className="size-8"
+                />
+              </button>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-foreground">
+                  JulioC354R
+                </p>
+                <p className="truncate text-[10px] text-muted-foreground/60">
+                  Creator &amp; maintainer
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openUrl('https://github.com/JulioC354R/SudoClip')}
+                className="gap-1.5"
+              >
+                <ExternalLink className="size-3.5" />
+                GitHub
+              </Button>
+            </div>
           </div>
         </div>
       </div>
