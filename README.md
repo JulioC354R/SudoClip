@@ -26,3 +26,8 @@ after it you can open another terminal and run:
 # You can add tthe full path if you want to try the shortcut on wayland
 ./src-tauri/target/release/tauri-app toggle
 ```
+
+```bash
+    #install dependence on Linux
+    sudo pacman -S ydotool
+```

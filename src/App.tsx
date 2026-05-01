@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { debug } from '@tauri-apps/plugin-log';
@@ -37,8 +38,10 @@ export default function App() {
     const poll = async () => {
       const content = await readClipboard();
       if (!content) return;
+      let isNew = false;
       setHistory((prev) => {
         if (prev.some((i) => i.content === content)) return prev;
+        isNew = true;
         const newItem: ClipboardItem = {
           id: generateId(),
           content,
@@ -46,9 +49,9 @@ export default function App() {
           timestamp: Math.floor(Date.now() / 1000),
         };
         debug('New clipboard content: ' + content);
-        setSelectedIndex(0);
         return [newItem, ...prev].slice(0, MAX_ITEMS);
       });
+      if (isNew) setSelectedIndex(0);
     };
 
     const interval = setInterval(poll, 500);
@@ -95,8 +98,7 @@ export default function App() {
         case 'Enter':
           e.preventDefault();
           if (filtered[selectedIndex]) {
-            writeText(filtered[selectedIndex].content);
-            getCurrentWindow().hide();
+            handlePaste(filtered[selectedIndex].content);
           }
           break;
         case 'Delete':
@@ -121,9 +123,11 @@ export default function App() {
     el?.scrollIntoView({ block: 'nearest' });
   }, [selectedIndex]);
 
-  const handlePaste = useCallback((content: string) => {
-    writeText(content);
-    getCurrentWindow().hide();
+  const handlePaste = useCallback(async (content: string) => {
+    await writeText(content);
+    await getCurrentWindow().hide();
+    await new Promise((r) => setTimeout(r, 100));
+    await invoke('simulate_paste');
   }, []);
 
   const handleDelete = useCallback((id: string) => {

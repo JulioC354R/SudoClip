@@ -1,3 +1,4 @@
+mod paste;
 mod toggle;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -17,12 +18,14 @@ pub fn run() {
 
     builder = toggle::setup(builder);
 
-    builder = builder.setup(|app| {
-        if toggle::should_toggle() {
-            toggle::handle_toggle(&app.handle());
-        }
-        Ok(())
-    });
+    builder = builder
+        .invoke_handler(tauri::generate_handler![paste::simulate_paste])
+        .setup(|app| {
+            if toggle::should_toggle() {
+                toggle::handle_toggle(&app.handle());
+            }
+            Ok(())
+        });
 
     builder
         .run(tauri::generate_context!())
